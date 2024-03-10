@@ -2,6 +2,11 @@
 #include <fstream>
 #include <string>
 #include "node.hpp"
+#include "process_node.hpp"
+#include "search.hpp"
+#include "print_word_pairs.hpp"
+#include "process_word_pairs.hpp"
+#include "temp.hpp"
 
 using namespace std;
 
@@ -71,104 +76,3 @@ int main() {
     }
   return 0;
 }
-
-
-//****************************************//
-//           FUNCTION DEFINITION          //
-//****************************************//
-
-// Returns true if the word is new, false otherwise
-bool process_node(string new_word, node*& tree) {
-	bool response;
-	if (tree == nullptr) {
-		tree = new node();
-        tree->assign(new_word);
-		response = true; // It is a new word
-	} else {
-		if (new_word == *tree) {
-            tree->count++;
-			response = false; // It is not a new word
-        }
-        else {
-            if (new_word < *tree)
-                response = process_node(new_word, tree->before);
-			else
-                response = process_node(new_word, tree->after);
-        }
-    }
-	return response;
-}
-
-// Search the word requested 
-void search(string word, node *tree) {
-    if (tree == nullptr) {
-    cout << "The word \"" << word << "\" was not found." << endl;
-  }
-    else if (*tree == word) {
-        cout << "Word pairs starting with \"" << word << "\" were ";
-        if (tree->pairs == nullptr) {
-            cout << "not found." << endl;
-        }
-        else {
-            if (tree->count_pair == 1)
-                cout << "found once." << endl;
-            else if (tree->count_pair == 2)
-                cout << "found twice." << endl;
-            else
-                cout << "found " << tree->count_pair << " times." << endl;
-            print_word_pairs(word, tree->pairs);
-        } 
-    }
-    else {
-        if (word < *tree)
-            search(word, tree->before); 
-        else
-            search(word, tree->after);
-    }
-}
-
-
-// Print the word pairs in alphabetical order
-void print_word_pairs(string word, node *tree){
-    if (tree != nullptr) {
-        print_word_pairs(word, tree->before);
-        if (tree->count == 1)
-            cout << "\"" << word << " " << *tree <<"\" was found once." << endl;
-        else if (tree->count == 2)
-            cout << "\"" << word << " " << *tree <<"\" was found twice." << endl;
-        else
-            cout << "\"" << word << " " << *tree <<"\" was found " << tree->count << " times." << endl;
-        print_word_pairs(word, tree->after);
-    }
-}
-
-// Find the word before in the tree
-void process_word_pairs(string before, string new_word, node*& tree) {
-    if (*tree != before) {
-        if (before < *tree) 
-            process_word_pairs(before, new_word, tree->before); 
-        else 
-            process_word_pairs(before, new_word, tree->after);
-    }
-    else {
-        tree->count_pair++;
-        temp(new_word, tree->pairs);
-    }
-}
-
-// Save the word temporarily with the previous word
-void temp(string new_word, node*& tree) {
-  if (tree == nullptr) {
-    tree = new node();
-    tree->assign(new_word);
-  }
-    else {
-        if (*tree == new_word)
-            tree->count++;  
-        else if (new_word < *tree)
-            temp(new_word, tree->before);
-        else
-            temp(new_word, tree->after);
-    }
-}
-
